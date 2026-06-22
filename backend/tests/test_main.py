@@ -19,6 +19,35 @@ class MainApiTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"status": "ok"})
 
+    def test_create_work_order(self) -> None:
+        response = client.post(
+            "/work-orders",
+            json={
+                "product_name": "电芯测试工单",
+                "planned_quantity": 200,
+                "status": "待生产",
+            },
+        )
+
+        print("\nPOST /work-orders")
+        print("状态码：", response.status_code)
+        print("响应内容：", response.json())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                "id": 1004,
+                "product_name": "电芯测试工单",
+                "planned_quantity": 200,
+                "status": "待生产",
+            },
+        )
+
+        detail_response = client.get("/work-orders/1004")
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertEqual(detail_response.json(), response.json())
+
     def test_get_work_order(self) -> None:
         response = client.get("/work-orders/1001")
 
@@ -27,7 +56,25 @@ class MainApiTestCase(unittest.TestCase):
         print("响应内容：", response.json())
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {"work_order_id": 1001})
+        self.assertEqual(
+            response.json(),
+            {
+                "id": 1001,
+                "product_name": "动力电池模组",
+                "planned_quantity": 500,
+                "status": "生产中",
+            },
+        )
+
+    def test_get_work_order_not_found(self) -> None:
+        response = client.get("/work-orders/9999")
+
+        print("\nGET /work-orders/9999")
+        print("状态码：", response.status_code)
+        print("响应内容：", response.json())
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json(), {"detail": "工单不存在"})
 
     def test_get_work_order_with_invalid_id(self) -> None:
         response = client.get("/work-orders/abc")

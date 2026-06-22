@@ -18,6 +18,9 @@ out/
 .env.local
 .env.*.local
 
+# 本地运行日志
+.runlogs/
+
 # IDE
 .idea/
 .vscode/
