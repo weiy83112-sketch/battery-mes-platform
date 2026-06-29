@@ -1,81 +1,92 @@
 # battery-mes-platform
 
-一个用于学习的微型动力电池 MES 云平台项目。
+一个用于学习的微型动力电池 MES 云平台，已实现从工单下发到产品质量追溯的完整基础链路。
 
-## 项目目标
+## 当前能力
 
-本项目用于边做边学，逐步实现一个简化版的工业互联网 / MES / ERP 工单追溯系统。
+- 工单管理：创建、列表和详情查询，数据保存到 SQLite
+- 条码管理：产品唯一条码建档并绑定工单
+- 扫码过站：记录工站、设备、操作人员、结果和时间
+- 设备采集：上传参数、单位和上下限，自动判断是否异常
+- 异常报警：参数超限时自动创建待处理报警
+- 追溯查询：按条码汇总工单、过站、设备参数和报警信息
 
-当前已经完成前后端最小跑通，并开始进入工单基础功能阶段。
+## 阶段进度
 
-## 目录结构
+- [x] 第一阶段：项目初始化
+- [x] 第二阶段：前后端最小跑通
+- [x] 第三阶段：工单基础功能及数据库持久化
+- [x] 第四阶段：条码建档与扫码过站
+- [x] 第五阶段：设备数据、阈值判断与报警
+- [x] 第六阶段：按产品条码进行完整追溯
+
+## 技术栈
+
+- 前端：Next.js 16、React 19、TypeScript、Tailwind CSS
+- 后端：FastAPI、SQLAlchemy 2、SQLite
+- 测试：Python unittest、FastAPI TestClient、ESLint、Next.js Build
+
+## 在 macOS 上运行
+
+### 1. 启动后端
+
+首次安装：
+
+```bash
+python3 -m venv backend/.venv
+backend/.venv/bin/python -m pip install -r backend/requirements.txt
+```
+
+启动服务：
+
+```bash
+backend/.venv/bin/python -m uvicorn app.main:app --app-dir backend --reload
+```
+
+后端地址：<http://127.0.0.1:8000>
+
+接口文档：<http://127.0.0.1:8000/docs>
+
+### 2. 启动前端
+
+另开一个终端：
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+前端地址：<http://localhost:3000>
+
+## 快速体验追溯
+
+系统首次启动会写入一组演示数据。在前端打开“追溯查询”，查询：
 
 ```text
-battery-mes-platform/
-  backend/   # 后端服务目录，后续放 FastAPI、SQLAlchemy、数据库相关代码
-  frontend/  # 前端项目目录，后续放 Next.js、React、TypeScript 页面和组件
-  docs/      # 项目文档目录，后续放学习笔记、接口说明、表结构设计、流程图
-  README.md  # 项目总说明，帮助快速了解项目用途和结构
-  AGENTS.md  # 协作说明，约定后续如何一步一步开发和学习
+BAT-2026-0001
 ```
 
-## 当前进度
+体验自动报警：在“生产采集”中上传“绝缘电阻”，设置下限为 `10`、上限为 `20`，把采集值设为 `8`。系统会保存异常参数并自动生成报警，再次追溯该条码即可看到完整记录。
 
-- [x] 初始化项目根目录结构
-- [x] 建立项目思路文档
-- [x] 初始化前端 Next.js 项目
-- [x] 初始化后端 FastAPI 项目
-- [x] 跑通后端健康检查接口
-- [x] 跑通前端调用后端健康检查接口
-- [x] 增加工单列表接口
-- [x] 完善工单详情接口
-- [x] 前端展示后端工单列表
-- [x] 前端点击工单查看详情
-- [x] 后端创建工单接口
-- [x] 前端创建工单表单
-- [ ] 接入数据库保存真实工单数据
+## 主要接口
 
-## 当前已实现接口
+| 方法 | 地址 | 作用 |
+| --- | --- | --- |
+| GET | `/health` | 健康检查 |
+| GET | `/dashboard` | 生产统计 |
+| GET / POST | `/work-orders` | 查询或创建工单 |
+| GET / POST | `/barcodes` | 查询或创建产品条码 |
+| GET / POST | `/station-passes` | 查询或创建过站记录 |
+| GET / POST | `/device-data` | 查询或上传设备参数 |
+| GET | `/alarms` | 查询报警 |
+| GET | `/traceability/{barcode}` | 查询产品完整追溯链路 |
 
-### 健康检查
+## 自动测试
 
-- 请求方式：`GET`
-- 请求地址：`/health`
-- 返回示例：`{"status": "ok"}`
-
-### 工单列表
-
-- 请求方式：`GET`
-- 请求地址：`/work-orders`
-- 业务作用：返回当前模拟工单列表，后续会改成从数据库查询。
-
-### 工单详情
-
-- 请求方式：`GET`
-- 请求地址：`/work-orders/{work_order_id}`
-- 当前目标：根据工单编号返回对应工单的完整信息。
-
-### 创建工单
-
-- 请求方式：`POST`
-- 请求地址：`/work-orders`
-- 当前作用：接收前端提交的工单信息，生成新工单编号并返回新工单。
-
-## 本地运行
-
-启动后端：
-
-```powershell
-.\backend\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --reload
+```bash
+PYTHONPATH=backend backend/.venv/bin/python -m unittest discover -s backend/tests -v
+cd frontend && npm run lint && npm run build
 ```
 
-运行后端测试：
-
-```powershell
-$env:PYTHONPATH='backend'
-.\backend\.venv\Scripts\python.exe -m unittest discover -s backend\tests -v
-```
-
-## 文档入口
-
-- [docs/项目思路.md](C:/Users/weiyun/Desktop/battery-mes-platform/docs/项目思路.md)：项目目标、模块拆分、核心业务流、阶段计划
+本地业务数据库位于 `backend/mes.db`，已加入 `.gitignore`，不会被提交到 GitHub。
